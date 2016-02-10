@@ -1,8 +1,12 @@
 #!/bin/bash
-#Simple script to automate the docker environment with Rexray on Windows from the docker toolset
+# Simple script to automate the docker environment with Rexray on Windows from the docker toolset
 # Created by James Scott based on work from blog.emc.com
 # The virtualbox server should be running prior to launching this see "rexray.bat"
 # Work in progrss :)
+# This is designed to be run in Windows from the Docker Toolset Shell
+
+#Run the docker toolset shell
+
 
 printf "Creating Docker Machine.... "
 echo
@@ -61,3 +65,4 @@ then
     docker run -ti --volume-driver=rexray -v $NAME:/$NAME busybox
   fi
 fi
+exit 1
