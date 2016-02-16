@@ -12,16 +12,30 @@ LOCATION="E:\volumes\\"
 #Start the docker machine to install rexray to
 echo "Creating Docker Machine.... "
 echo
-CHECKDM="$(docker-machine status testing)"
 
-#Don't create the machine if it's already running
-#I've had rexray issues re-starting the machine so just re-create if it's not running (why use a scaple!)
+CHECKDM="$(docker-machine ls | grep testing  2>&1) "
+#Don't create the machine if it's already running unless the user wants to
+#I've had rexray issues re-starting the machine so just re-create if it's not running for now (why use a scaple!)
+
+if [[ $CHECKDM == *"Running"* ]]
+then
+  read -p "Do you want to recreate the docker-machine? " -n 1 -r
+  if [[  $REPLY =~ ^[Yy]$ ]]
+  then
+    CHECKDM="recreate"
+  fi
+fi
+
+echo
+
+
 if [[ $CHECKDM == *"Running"* ]]
 then
   echo "Docker Machine already running"
 else
+  echo "Recreating Docker VM"
   # Delete it if it's found
-  tmp= "$(docker-machine rm -f testing)"
+  docker-machine rm -f testing
   # Re-create
   docker-machine create --driver=virtualbox testing
   echo "Downloading and Installing Rexray...."
@@ -44,37 +58,55 @@ else
   "
   echo
   echo
-  printf "Staring Rexray Service \n"
-  docker-machine ssh testing "sudo rexray start"
+  echo "Staring Rexray Service"
+  echo
+  REXRAY="$(docker-machine ssh testing "sudo rexray start"  2>&1)"
+  if [[ $REXRAY == *"SUCCESS"* ]]
+  then
+    echo "RexRay Service Started"
+  else
+    echo "RexRay Server Failed to Start $REXRAY"
+    echo
+  fi
 fi
 
-echo "Setting environment to Docker Machine"
+REXRAY=$(docker-machine ssh testing "sudo rexray start" 2>&1)
 
-#Options to test the rexray environment
-
-echo
-eval $(docker-machine env testing)
-read -p "Do you want to create a test volume? " -n 1 -r
-echo
-if [[  $REPLY =~ ^[Yy]$ ]]
+if [[ $REXRAY == *"running"* ]]
 then
-  NAME="$RANDOM"
-  echo "Creating volume with name $NAME....."
-  docker volume create --driver=rexray --name=$NAME --opt=size=1
+  #Options to test the rexray environment
   echo
-  read -p "Do you want to connect the voume to a test container? " -n 1 -r
-  echo
-  if [[  $REPLY =~ ^[Yy]$ ]]
-  then
-    echo "Creating container"
-    docker run -ti --volume-driver=rexray -v $NAME:/$NAME busybox
-  fi
-  echo
-  read -p "Start a new container and connect the same volume? " -n 1 -r
+  eval $(docker-machine env testing)
+  read -p "Do you want to create a test volume? " -n 1 -r
   echo
   if [[  $REPLY =~ ^[Yy]$ ]]
   then
-    echo "Creating new container"
-    docker run -ti --volume-driver=rexray -v $NAME:/$NAME busybox
+    NAME="$RANDOM"
+    echo "Creating volume with name $NAME....."
+    docker volume create --driver=rexray --name=$NAME --opt=size=1
+    echo
+    read -p "Do you want to connect the voume to a test container? " -n 1 -r
+    echo
+    if [[  $REPLY =~ ^[Yy]$ ]]
+    then
+      echo "Creating container"
+      docker run -ti --volume-driver=rexray -v $NAME:/$NAME busybox
+    fi
+    echo
+    read -p "Start a new container and connect the same volume? " -n 1 -r
+    echo
+    if [[  $REPLY =~ ^[Yy]$ ]]
+    then
+      echo "Creating new container"
+      docker run -ti --volume-driver=rexray -v $NAME:/$NAME busybox
+    fi
   fi
+else
+
+  echo " $REXRAY "
+  echo
+  echo "Something Failed"
+  echo "Check VirtualBox Web Service is running and you have internet access"
+  echo "Maybe try recreating the docker machine?"
+
 fi
