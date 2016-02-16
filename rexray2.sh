@@ -1,7 +1,7 @@
 #!/bin/bash
 # Simple script to automate the docker environment with Rexray on Windows from the docker toolset
 # Created by James Scott based on work from blog.emc.com
-# The virtualbox server should be running prior to launching this see "rexray.bat"
+# The virtualbox server should be running prior to launching this (see "rexray.bat")
 # Work in progrss :)
 # This is designed to be run in Windows from the Docker Toolset Shell
 
@@ -10,7 +10,7 @@
 LOCATION="E:\volumes\\"
 
 #Start the docker machine to install rexray to
-printf "Creating Docker Machine.... "
+echo "Creating Docker Machine.... "
 echo
 CHECKDM="$(docker-machine status testing)"
 
@@ -24,11 +24,11 @@ else
   tmp= "$(docker-machine rm -f testing)"
   # Re-create
   docker-machine create --driver=virtualbox testing
-  printf "Downloading and Installing Rexray...."
+  echo "Downloading and Installing Rexray...."
   #Download and install rexray
-  #Need to expand this to save the install locally for offline use
   docker-machine ssh testing "curl -sSL https://dl.bintray.com/emccode/rexray/install | sh -"
-  printf "Setting Rexray Configuration to VirtualBox"
+
+  echo "Setting Rexray Configuration to VirtualBox"
   docker-machine ssh testing "sudo tee -a /etc/rexray/config.yml << EOF
   rexray:
     storageDrivers:
@@ -48,7 +48,7 @@ else
   docker-machine ssh testing "sudo rexray start"
 fi
 
-printf "Setting environment to Docker Machine"
+echo "Setting environment to Docker Machine"
 
 #Options to test the rexray environment
 
@@ -78,8 +78,3 @@ then
     docker run -ti --volume-driver=rexray -v $NAME:/$NAME busybox
   fi
 fi
-
-
-
-
-exit 1
