@@ -82,7 +82,9 @@ then
   if [[  $REPLY =~ ^[Yy]$ ]]
   then
     NAME="$RANDOM"
-    echo "Creating volume with name $NAME....."
+    RED='\033[0;31m'
+    NC='\033[0m'
+    printf "Creating volume with name ${RED}$NAME${NC}\n"
     docker volume create --driver=rexray --name=$NAME --opt=size=1
     echo
     read -p "Do you want to connect the voume to a test container? " -n 1 -r
@@ -102,11 +104,9 @@ then
     fi
   fi
 else
-
   echo " $REXRAY "
   echo
   echo "Something Failed"
   echo "Check VirtualBox Web Service is running and you have internet access"
   echo "Maybe try recreating the docker machine?"
-
 fi
